@@ -1,0 +1,185 @@
+﻿@page "/"
+
+@using BlazorWorkoutGen.models
+@using BlazorWorkoutGen.Services
+@inject ExerciseService ExerciseService;
+
+<PageTitle>Workout Tracker</PageTitle>
+<EditForm Model="@exercise" >
+<div>
+    <h3>Track your workout here!</h3>
+</div>
+<br>
+<table>
+    <tr>
+        <td><input type="text" id="exerciseName" @bind="exercise.Name" placeholder="Name of Exercise"></td>
+    </tr>
+
+</table>
+
+<table>
+
+    <tr>
+        <td> <label for="sets">Number of Sets</label></td>
+    </tr>
+    <tr>
+        <td><input type="number" id="sets" @bind="sets" placeholder="sets"></td>
+    </tr>
+</table>
+<table>
+    <tr>
+        <td> <label>Set</label></td>
+        <td> <label>Reps</label></td>
+        <td> <label>Weight (kg)</label></td>
+    </tr>
+
+</table>
+ 
+</EditForm>
+@for (int i = 1; i <= sets; i++)
+{
+    var Setinfo = GetSetInfo(i);
+    <table>
+        <tr>
+            <td><input type="number" @bind="Setinfo.SetNumber"/></td>
+            <td><input type="number" @bind="Setinfo.Reps"/></td>
+            <td><input type="number" @bind="Setinfo.Weight"/></td> 
+        </tr>
+        
+    </table>
+    setinfolist.Add(Setinfo);
+
+
+} 
+
+
+
+
+
+<table>
+    <tr>
+        <td> <button @onclick=AddExercise>Submit</button></td>
+        <td> <button @onclick=SaveExercise>Save Exercise</button></td>
+    </tr>
+</table>
+<br>
+<br>
+
+@if (Exercises.Count > 0)
+{
+    @foreach (var workout in Exercises)
+    {
+        <h3> Completed workout</h3>
+        <table>
+            <tr>
+                <td><label>@workout.Name</label></td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td> <label>Set</label></td>
+                <td> <label>Reps</label></td>
+                <td> <label>Weight (kg)</label></td>
+                
+                
+            </tr>
+        </table>
+        <table>
+            @foreach (var set in workout.Sets)
+
+            {
+                <tr>
+                    <td> <label>@set.SetNumber</label></td>
+                    <td> <label>@set.Reps</label></td>
+                    <td> <label>@set.Weight</label></td>
+
+                </tr>
+            }
+        </table>
+        
+    }
+}
+
+
+
+
+@code {
+    //creating objects.
+    Exercise exercise = new();
+
+    SetInfo exerciseSet = new();
+
+    //list for storing exercise values.
+    public int sets;
+    List<Exercise> Exercises = new List<Exercise>();
+
+    //adding exercises
+    public void AddExercise()
+    {
+        for(int i = 1; i<=setinfolist.Count; i++)
+        // creating the sets dynamically with a loop, caused a lot of duplicate values being added
+        // this section of code resolved that error.
+        {
+            if (!exercise.Sets.Contains(setinfolist[i - 1]))
+            {
+                exercise.Sets.Add(setinfolist[i - 1]);
+            }
+        }
+
+        Exercises.Add(exercise);
+
+        // Clear the input fields after adding an exercise
+       
+
+
+
+    }
+    public void SaveExercise()
+    //storing Exercise in the database.
+
+    {
+        //creating a workout object.
+        Workout workout = new();
+        if(Exercises.Count > 0)
+        {
+            foreach(var exercise in Exercises)
+            {
+                workout.ExerciseName = exercise.Name;
+                //loop through exercises.set list to gain access to setinfo objects
+                for(int i = 1; i <= exercise.Sets.Count;i++)
+                {
+                    workout.Sets = exercise.Sets[i - 1].SetNumber;
+                    workout.Reps = exercise.Sets[i - 1].Reps;
+                    workout.Weight = exercise.Sets[i - 1].Weight;
+
+                }
+            }
+            ExerciseService.AddWorkout(workout);
+            exercise = new Exercise();
+            sets = 0;
+            setinfolist.Clear();
+            setsList.Clear();
+
+        }
+        
+        
+    }
+
+    private List<SetInfo> setinfolist = new List<SetInfo>();
+    private List<SetInfo> setsList = new List<SetInfo>();
+
+
+    //to combat blazor rendering system, reset the input values to zero, as soon as users entered data.
+    private SetInfo GetSetInfo(int index)
+    
+    {
+        while (setsList.Count < index)
+        {
+            setsList.Add(new SetInfo());
+        }
+
+        return setsList[index - 1];
+    }
+
+
+}
