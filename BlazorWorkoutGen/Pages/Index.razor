@@ -60,6 +60,7 @@
     <tr>
         <td> <button @onclick=AddExercise>Submit</button></td>
         <td> <button @onclick=SaveExercise>Save Exercise</button></td>
+        <td> <button @onclick=Nextworkout>Next</button></td>
     </tr>
 </table>
 <br>
@@ -112,6 +113,7 @@
     //list for storing exercise values.
     public int sets;
     List<Exercise> Exercises = new List<Exercise>();
+    List<Exercise> SExercises = new List<Exercise>();
 
     //adding exercises
     public void AddExercise()
@@ -127,9 +129,10 @@
         }
 
         Exercises.Add(exercise);
+        SExercises.Add(exercise);
 
         // Clear the input fields after adding an exercise
-       
+
 
 
 
@@ -140,9 +143,9 @@
     {
         //creating a workout object.
         Workout workout = new();
-        if(Exercises.Count > 0)
+        if(SExercises.Count > 0)
         {
-            foreach(var exercise in Exercises)
+            foreach(var exercise in SExercises)
             {
                 workout.ExerciseName = exercise.Name;
                 //loop through exercises.set list to gain access to setinfo objects
@@ -155,14 +158,20 @@
                 }
             }
             ExerciseService.AddWorkout(workout);
-            exercise = new Exercise();
-            sets = 0;
-            setinfolist.Clear();
-            setsList.Clear();
+            SExercises.Clear();
 
         }
-        
-        
+
+
+    }
+
+    public void Nextworkout()
+    {
+        exercise = new Exercise();
+        sets = 0;
+        setinfolist.Clear();
+        setsList.Clear();
+
     }
 
     private List<SetInfo> setinfolist = new List<SetInfo>();
